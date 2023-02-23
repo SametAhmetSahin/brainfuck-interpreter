@@ -1,4 +1,4 @@
-use std::{io::{self, Read}, thread::current};
+use std::{io::{self, Read, stdin}, thread::current};
 
 /*
 
@@ -15,73 +15,87 @@ A standard Brainfuck compiler/interpreter states 30k 1 byte memory blocks.
 
 */
 
-fn execute_loop(memory: &[u8], current_pointer: usize, loopexpr: &str) {
-    println!("loop here: {}", loopexpr);
-    while memory[current_pointer] != 0 {
-    break;
-    }
-}
-
-fn main() {
-    let mut memory = [0 as u8; 30000];
-
-    let mut current_pointer = 0;
-    
-    println!("Hello, world!");
-    println!("input:");
-    let mut input = String::from("");
-    std::io::stdin().read_line(&mut input).expect("Couldn't read string");
-    // Interpreting
+fn evaluate_expression(memory: &mut [i32], current_pointer: &mut usize, expr: &str) {
     let mut skip: usize = 0;
 
-    for (i, c) in input.chars().enumerate() {
+    for (i, c) in expr.chars().enumerate() {
         if skip > 0 {
             skip -= 1;
             continue;
         }
-        //println!("Current char {}", inputchar);
+        //println!("Current char {}", c);
         match c {
             '>' => {
-                current_pointer += 1;
+                *current_pointer += 1;
             },
             '<' => {
-                current_pointer -= 1;
+                *current_pointer -= 1;
             },
             '+' => {
-                memory[current_pointer] += 1;
+                memory[*current_pointer] += 1;
             },
             '-' => {
-                memory[current_pointer] -= 1;
+                memory[*current_pointer] -= 1;
             },
             '[' => {
                 let startpos = i;
                 let mut stack = 1;
-                let mut exprindex = 1;
-                println!("Starting loop lookup");
+                let mut subindex = 1;
+                //println!("Starting loop lookup");
                 while stack != 0 {
-                    if input.chars().nth(startpos + exprindex) == Some('[') {
+                    if expr.chars().nth(startpos + subindex) == Some('[') {
                         stack += 1;
-                        println!("stack+");
+                        //println!("stack+");
                     }
 
-                    if input.chars().nth(startpos + exprindex) == Some(']') {
+                    if expr.chars().nth(startpos + subindex) == Some(']') {
                         stack -= 1;
-                        println!("stack-");
+                        //println!("stack-");
                     }
-                    exprindex += 1;
+                    subindex += 1;
                 }
-                let exprlen = exprindex;
-                println!("exprindex {}", exprindex);
-                let loopexpr = &input[startpos..startpos+exprlen];
+                let exprlen = subindex;
+                //println!("subindex {}", subindex);
+                let loopexpr = &expr[startpos+1..startpos+exprlen-1]; // To not include the start and end brackets
+                //println!("loopexpr {}", &loopexpr);
+
+                //println!("{:?}", &memory[0..32]);
                 //let Some(loopexpr) = &input[startpos..input.len()].find(']');
-                execute_loop(&memory, current_pointer, loopexpr);
-                skip = exprlen;
+                //execute_loop(memory, current_pointer, loopexpr);
+                let thisindex = *current_pointer;
+                while memory[thisindex] != 0 {
+                    evaluate_expression(memory, current_pointer, loopexpr);
+                }
+                skip = exprlen-1;
             },
             ']' => {},
-            ',' => {},
-            '.' => {print!("{}", memory[current_pointer] as char)},
+            ',' => {
+                let mut readbuf: [u8; 1] = [0];
+                stdin().read_exact(&mut readbuf).expect("Couldn't read from stdin");
+                memory[*current_pointer] = readbuf[0] as i32;
+            },
+            '.' => {print!("{}", (memory[*current_pointer] as u8) as char)}, //(memory[*current_pointer]+30) as char)},
             _ => {},
         }
     }
-    println!("{:?}", &memory[0..32])
+}
+
+fn main() {
+    let mut memory = [0 as i32; 30000];
+
+    let mut current_pointer = 0;
+    
+    println!("Hello, world!");
+    println!("ptr: {}", current_pointer);
+    println!("input:");
+    let mut input = String::from("");
+    std::io::stdin().read_line(&mut input).expect("Couldn't read string");
+    //println!("evaluating...\n");
+    // Interpreting
+    evaluate_expression(&mut memory, &mut current_pointer, &input[0..input.len()-1]);
+    //println!("\n\nevaluated\n");
+    println!("\n\n");
+    println!("{:?}", &memory[0..32]);
+    let pointer_offset = 1+((current_pointer)*3);
+    println!("{: <1$}{ptr}", "", (pointer_offset), ptr="^")
 }
