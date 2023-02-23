@@ -85,17 +85,21 @@ fn main() {
 
     let mut current_pointer = 0;
     
-    println!("Hello, world!");
-    println!("ptr: {}", current_pointer);
-    println!("input:");
+    println!("Brainfuck interpreter");
+    println!("Expression input:");
     let mut input = String::from("");
     std::io::stdin().read_line(&mut input).expect("Couldn't read string");
+    if input.find(",").is_some() {
+        println!("Program data input:");
+    }
     //println!("evaluating...\n");
     // Interpreting
     evaluate_expression(&mut memory, &mut current_pointer, &input[0..input.len()-1]);
     //println!("\n\nevaluated\n");
-    println!("\n\n");
+    //println!("\n\n");
+    /*
     println!("{:?}", &memory[0..32]);
     let pointer_offset = 1+((current_pointer)*3);
     println!("{: <1$}{ptr}", "", (pointer_offset), ptr="^")
+    */
 }
