@@ -8,6 +8,8 @@ At the time of writing (23/02/2023 in dd/mm/yy format) I am still new to Rust, a
 
 This particular interpreter might have some problems.
 
+This interpreter evaluates loops recursively, which might be a problematic approach.
+
 ## Installation & Running
 After running `cargo build`, preferably with the `--release` flag, the `brainfuck-interpreter` binary can be run directly. There is one mandatory and one optional stdin, the mandatory is the expression input (your "code"), the optional is the data input. Both can be typed in manually after running the program, or can be `echo`ed with `echo ">++++[>++++<-]>" | ./brainfuck-interpreter` for expression input, and `echo "exprhere\ndatainputhere" | ./brainfuck-interpreter` for expression & data input.
 
